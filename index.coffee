@@ -5,21 +5,25 @@ items = [
 list = d3.select('#d3 #list')
 input = d3.select('#d3 input')
 	
-r = (obs, { enter, update, exit }) ->
+r = (obs, { data, key, enter, update, exit }) ->
+	obs = obs.filter -> !d3.select(@).classed 'template'
+	data && obs = obs.data(data, key)
 	enter && enter.call obs.enter()
 	update && update.call obs
 	exit && exit.call obs.exit()
 
 make = (cls) ->
 	->
-		template = d3.select(this).select(cls+'.template').node() 
+		template = d3.select(@).select(cls+'.template').node() 
 		el = template.cloneNode(true)
 		template.parentNode.insertBefore(el, template)
 		d3.select(el).classed template: false		
 		el
 
 render = ->
-	r list.selectAll('.item:not(.template)').data(items, (d,i)-> d.uid), 
+	r list.selectAll('.item'), 
+		data: items 
+		key: (d,i) -> d.uid 
 		enter: ->
 			@append make '.item'
 			.style 'padding-left', 300 
@@ -33,7 +37,6 @@ render = ->
 			.text (d, i)-> i+" "+d.value	
 
 			@select 'a' 
-			.text 'x' 
 			.attr 'href', '#' 
 			.on 'click', (d, i) ->
 				items.splice(i, 1)
